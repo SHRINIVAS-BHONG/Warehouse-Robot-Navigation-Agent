@@ -48,11 +48,11 @@ def train_multi_agent(episodes=200, batch_size=64):
             total_r2 += r2
             steps += 1
             
-            if buffer1.size() >= batch_size:
+            if steps % 4 == 0 and buffer1.size() >= batch_size:
                 s1, ac1, rew1, ns1, d1 = buffer1.sample(batch_size)
                 agent1.train_on_batch(s1, ac1, rew1, ns1, d1)
                 
-            if buffer2.size() >= batch_size:
+            if steps % 4 == 0 and buffer2.size() >= batch_size:
                 s2, ac2, rew2, ns2, d2 = buffer2.sample(batch_size)
                 agent2.train_on_batch(s2, ac2, rew2, ns2, d2)
                 
@@ -74,4 +74,4 @@ def train_multi_agent(episodes=200, batch_size=64):
     print(f"\nTraining finished! Multi-agent models saved to {checkpoints_dir}")
 
 if __name__ == "__main__":
-    train_multi_agent(episodes=100) # Short demonstration
+    train_multi_agent(episodes=40)  # Reduced for faster training

@@ -8,17 +8,18 @@ from env.partial_obs_env import PartialObsWarehouseEnv
 from agents.cnn_dqn_agent import CNNDQNAgent
 from utils.replay_buffer import ReplayBuffer
 
-def train_curriculum(batch_size=64):
+def train_curriculum(batch_size=64, levels=None):
     """Phase 8 (Step 32): Curriculum Learning.
     Trains the agent sequentially on progressively harder environments.
     Because PartialObsWarehouseEnv has a fixed state dimension (28 dim),
     the CNN agent can seamlessly transfer learned weights across grid sizes!
     """
-    levels = [
-        {"grid_size": 5, "num_obstacles": 2, "num_goals": 1, "max_battery": 50, "episodes": 100},
-        {"grid_size": 8, "num_obstacles": 5, "num_goals": 2, "max_battery": 100, "episodes": 150},
-        {"grid_size": 12, "num_obstacles": 15, "num_goals": 4, "max_battery": 250, "episodes": 200}
-    ]
+    if levels is None:
+        levels = [
+            {"grid_size": 5, "num_obstacles": 2, "num_goals": 1, "max_battery": 50, "episodes": 100},
+            {"grid_size": 8, "num_obstacles": 5, "num_goals": 2, "max_battery": 100, "episodes": 150},
+            {"grid_size": 12, "num_obstacles": 15, "num_goals": 4, "max_battery": 250, "episodes": 200}
+        ]
     
     agent = CNNDQNAgent(action_space_size=4)
     buffer = ReplayBuffer(capacity=20000)
@@ -44,8 +45,22 @@ def train_curriculum(batch_size=64):
             total_reward = 0
             steps = 0
             
+            # Expert guidance prob
+            import random
+            expert_prob = max(0.0, 0.8 - (episode / 10.0))
+            from utils.expert_helper import get_shortest_path, get_action_from_states
+            
             while not done and steps < 200:
+                expert_action = None
+                if env.current_goal_idx < len(env.goals):
+                    path = get_shortest_path(env.grid_size, env.robot_pos, env.goals[env.current_goal_idx], env.obstacles)
+                    if path and len(path) > 1:
+                        expert_action = get_action_from_states(env.robot_pos, path[1])
+                        
                 action = agent.get_action(state)
+                if expert_action is not None and random.random() < expert_prob:
+                    action = expert_action
+                    
                 next_state, reward, done, _, _ = env.step(action)
                 
                 buffer.add(state, action, reward, next_state, done)
@@ -54,7 +69,7 @@ def train_curriculum(batch_size=64):
                 total_reward += reward
                 steps += 1
                 
-                if buffer.size() >= batch_size:
+                if steps % 4 == 0 and buffer.size() >= batch_size:
                     states, actions, rewards, next_states, dones = buffer.sample(batch_size)
                     agent.train_on_batch(states, actions, rewards, next_states, dones)
                     
@@ -75,4 +90,8 @@ def train_curriculum(batch_size=64):
     print(f"\nCurriculum Training finished! Model saved to {checkpoint_path}")
 
 if __name__ == "__main__":
-    train_curriculum()
+    custom_levels = [
+        {"grid_size": 5, "num_obstacles": 2, "num_goals": 1, "max_battery": 50, "episodes": 10},
+        {"grid_size": 8, "num_obstacles": 5, "num_goals": 2, "max_battery": 100, "episodes": 10},
+    ]
+    train_curriculum(levels=custom_levels)  # Reduced for faster training

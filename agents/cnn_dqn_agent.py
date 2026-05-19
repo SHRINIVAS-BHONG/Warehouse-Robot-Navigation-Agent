@@ -5,6 +5,31 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dense, Input, Conv2D, Flatten, Concatenate
 from tensorflow.keras.optimizers import Adam
 
+# Configure GPU settings
+def configure_gpu():
+    """Configure GPU for TensorFlow training"""
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Enable memory growth to prevent TensorFlow from allocating all GPU memory
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            print(f"SUCCESS: GPU detected and configured: {len(gpus)} GPU(s) available")
+            print(f"  GPU devices: {[gpu.name for gpu in gpus]}")
+            return True
+        except RuntimeError as e:
+            print(f"GPU configuration error: {e}")
+            return False
+    else:
+        print("WARNING: No GPU detected. Training will use CPU.")
+        print("  For GPU support on Windows:")
+        print("  - Install tensorflow-directml: pip install tensorflow-directml")
+        print("  - Or use WSL2 with CUDA-enabled TensorFlow")
+        return False
+
+# Configure GPU on module import
+configure_gpu()
+
 class CNNDQNAgent:
     """Phase 8 (Step 33): CNN-Based Vision Navigation.
     Uses a CNN to process the 5x5 partial observability grid,
@@ -59,15 +84,20 @@ class CNNDQNAgent:
             return random.randint(0, self.action_space_size - 1)
         
         img, vec = self._split_state(state)
-        q_values = self.model.predict([np.expand_dims(img, axis=0), np.expand_dims(vec, axis=0)], verbose=0)
+        img_expanded = np.expand_dims(img, axis=0).astype(np.float32)
+        vec_expanded = np.expand_dims(vec, axis=0).astype(np.float32)
+        q_values = self.model([img_expanded, vec_expanded], training=False).numpy()
         return np.argmax(q_values[0])
 
     def train_on_batch(self, states, actions, rewards, next_states, dones):
         states_split = self._split_batch(states)
         next_states_split = self._split_batch(next_states)
         
-        target_q = self.model.predict(states_split, verbose=0)
-        future_q = self.target_model.predict(next_states_split, verbose=0)
+        states_tensors = [tf.convert_to_tensor(states_split[0], dtype=tf.float32), tf.convert_to_tensor(states_split[1], dtype=tf.float32)]
+        next_states_tensors = [tf.convert_to_tensor(next_states_split[0], dtype=tf.float32), tf.convert_to_tensor(next_states_split[1], dtype=tf.float32)]
+        
+        target_q = self.model(states_tensors, training=False).numpy()
+        future_q = self.target_model(next_states_tensors, training=False).numpy()
         
         for i in range(len(states)):
             if dones[i]:

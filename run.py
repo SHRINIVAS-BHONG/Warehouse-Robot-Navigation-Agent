@@ -2,35 +2,43 @@ import sys
 import os
 
 def print_menu():
-    print("\n" + "="*50)
-    print(" Warehouse RL Navigation - Central CLI Runner")
-    print("="*50)
-    print(" 1. Train Q-Learning Agent")
-    print(" 2. Train Deep Q-Network (DQN)")
-    print(" 3. Train Proximal Policy Optimization (PPO)")
-    print(" 4. Train CNN Vision Agent (Partial Observability)")
-    print(" 5. Train Multi-Agent System (Decentralized DQN)")
-    print(" 6. Run Curriculum Learning (Auto-Scaling Difficulty)")
-    print(" 7. Evaluate Trained Q-Learning Agent (w/ Heatmap)")
-    print(" 8. Run Agent Benchmark & Comparison Suite")
-    print(" 9. Exit")
-    print("="*50)
+    print("\n" + "="*60)
+    print(" 🤖 Warehouse Robot Navigation - Main Menu")
+    print("="*60)
+    print("\n Training Options:")
+    print("  1. Train Q-Learning Agent (Fast, 96.8% success)")
+    print("  2. Train Deep Q-Network (DQN)")
+    print("  3. Train Proximal Policy Optimization (PPO)")
+    print("  4. Train CNN-DQN (Partial Observability)")
+    print("  5. Train Multi-Agent System")
+    print("  6. Train with Curriculum Learning")
+    print("\n Evaluation & Visualization:")
+    print("  7. Evaluate Q-Learning Agent (with heatmap)")
+    print("  8. Compare All Agents")
+    print("  9. Generate All Plots")
+    print("\n Other:")
+    print("  10. Run Random Agent Demo")
+    print("  0. Exit")
+    print("="*60)
 
 def main():
     # Ensure we are in the project root
     project_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(project_dir)
     
-    python_exec = os.path.join("venv", "Scripts", "python")
+    if sys.platform == "win32":
+        python_exec = os.path.join("venv", "Scripts", "python.exe")
+    else:
+        python_exec = os.path.join("venv", "bin", "python")
     
     if not os.path.exists(python_exec):
-        print("Warning: Virtual environment python not found at venv\\Scripts\\python.")
+        print(f"Warning: Virtual environment python not found at {python_exec}.")
         print("Falling back to global 'python' command.")
         python_exec = "python"
         
     while True:
         print_menu()
-        choice = input("Select a pipeline to execute (1-9): ")
+        choice = input("\nSelect an option (0-10): ").strip()
         
         script = None
         if choice == '1':
@@ -50,15 +58,26 @@ def main():
         elif choice == '8':
             script = os.path.join("training", "compare_agents.py")
         elif choice == '9':
-            print("Exiting CLI...")
+            script = "generate_plots.py"
+        elif choice == '10':
+            script = "main.py"
+        elif choice == '0':
+            print("\n👋 Exiting... Goodbye!")
             sys.exit(0)
         else:
-            print("Invalid choice. Please select a valid number.")
+            print("\n❌ Invalid choice. Please select a number between 0-10.")
+            input("Press Enter to continue...")
             continue
             
         if script:
-            print(f"\n>>> Executing: {python_exec} {script}\n")
+            print(f"\n{'='*60}")
+            print(f">>> Executing: {script}")
+            print(f"{'='*60}\n")
             os.system(f"{python_exec} {script}")
+            print(f"\n{'='*60}")
+            print("✅ Execution completed!")
+            print(f"{'='*60}")
+            input("\nPress Enter to return to menu...")
 
 if __name__ == "__main__":
     main()

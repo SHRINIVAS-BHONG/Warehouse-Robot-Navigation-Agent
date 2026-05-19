@@ -8,7 +8,7 @@ from training.train_dqn import train_dqn
 from training.train_ppo import train_ppo
 from utils.visualization import plot_comparison
 
-def compare_agents():
+def compare_agents(episodes=50):
     """Phase 7 (Step 30): Compare agents
     Runs training for Q-Learning, DQN, and PPO for a short number of episodes.
     Then plots their reward curves side-by-side to compare convergence.
@@ -16,7 +16,7 @@ def compare_agents():
     print("=== Agent Comparison Suite ===")
     
     # We use a small number of episodes for quick testing/comparison
-    test_episodes = 50
+    test_episodes = episodes
     
     print("\n--- Training Q-Learning ---")
     metrics_q = train_q(episodes=test_episodes)

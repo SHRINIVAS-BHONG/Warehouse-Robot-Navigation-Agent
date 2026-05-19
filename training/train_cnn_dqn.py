@@ -29,8 +29,22 @@ def train_cnn_dqn(episodes=200, batch_size=64):
         total_reward = 0
         steps = 0
         
+        # Expert guidance prob
+        import random
+        expert_prob = max(0.0, 0.8 - (episode / 40.0))
+        from utils.expert_helper import get_shortest_path, get_action_from_states
+        
         while not done and steps < 150: # Allow more steps due to larger map and goals
+            expert_action = None
+            if env.current_goal_idx < len(env.goals):
+                path = get_shortest_path(env.grid_size, env.robot_pos, env.goals[env.current_goal_idx], env.obstacles)
+                if path and len(path) > 1:
+                    expert_action = get_action_from_states(env.robot_pos, path[1])
+                    
             action = agent.get_action(state)
+            if expert_action is not None and random.random() < expert_prob:
+                action = expert_action
+                
             next_state, reward, done, _, _ = env.step(action)
             
             buffer.add(state, action, reward, next_state, done)
@@ -39,7 +53,7 @@ def train_cnn_dqn(episodes=200, batch_size=64):
             total_reward += reward
             steps += 1
             
-            if buffer.size() >= batch_size:
+            if steps % 4 == 0 and buffer.size() >= batch_size:
                 states, actions, rewards, next_states, dones = buffer.sample(batch_size)
                 agent.train_on_batch(states, actions, rewards, next_states, dones)
                 
@@ -65,4 +79,4 @@ def train_cnn_dqn(episodes=200, batch_size=64):
     print(f"Training finished and CNN DQN model saved to {checkpoint_path}")
 
 if __name__ == "__main__":
-    train_cnn_dqn(episodes=50) # Very small number for quick testing
+    train_cnn_dqn(episodes=30)  # Reduced for faster training

@@ -1,34 +1,70 @@
-# Environments
-venv/
-env/bin/
-env/include/
-env/lib/
-env/share/
-.env
-
-# Checkpoints and Models
-checkpoints/
-*.h5
-*.keras
-*.pkl
-
-# Logs and Plots
-plots/
-*.png
-*.jpg
-*.log
-
-# Python Cache
+# Python
 __pycache__/
-*.pyc
-*.pyo
-.pytest_cache/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# IDEs
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
 .vscode/
 .idea/
 *.swp
-
-# OS Files
+*.swo
+*~
 .DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Logs
+*.log
+training_output.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# OS
 Thumbs.db
+.DS_Store
+
+# Project specific
+*.pkl.bak
+training_results.json
+benchmark_results.json
+
+# Keep checkpoints but ignore large files
+checkpoints/*.h5
+checkpoints/*.hdf5
+
+# Keep plots directory but ignore temp plots
+plots/temp_*.png

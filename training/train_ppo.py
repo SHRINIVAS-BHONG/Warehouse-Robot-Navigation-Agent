@@ -15,6 +15,50 @@ def train_ppo(epochs=50, steps_per_epoch=1000):
     
     agent = PPOAgent(state_dim=state_dim, num_actions=num_actions)
     
+    # Pre-train PPO using Behavioral Cloning on expert path
+    from utils.expert_helper import get_shortest_path, get_action_from_states
+    
+    print("Pre-training PPO using Behavioral Cloning on expert path...")
+    path = get_shortest_path(env.grid_size, [0, 0], [9, 9], env.obstacles)
+    if path:
+        expert_states = []
+        expert_actions = []
+        for step_idx in range(len(path) - 1):
+            expert_states.append(path[step_idx])
+            expert_actions.append(get_action_from_states(path[step_idx], path[step_idx+1]))
+            
+        expert_states = np.array(expert_states, dtype=np.float32)
+        expert_actions = np.array(expert_actions, dtype=np.int32)
+        
+        # Train policy and value networks on expert data
+        for _ in range(50):
+            # Fit actor
+            with tf.GradientTape() as tape:
+                logits = agent.actor(expert_states, training=True)
+                loss = tf.reduce_mean(
+                    tf.keras.losses.sparse_categorical_crossentropy(
+                        expert_actions, logits, from_logits=True
+                    )
+                )
+            grads = tape.gradient(loss, agent.actor.trainable_variables)
+            agent.actor_optimizer.apply_gradients(zip(grads, agent.actor.trainable_variables))
+            
+            # Fit critic
+            returns = np.zeros(len(path) - 1, dtype=np.float32)
+            discounted_sum = 0
+            for idx in reversed(range(len(path) - 1)):
+                reward = 100.0 if idx == len(path) - 2 else 1.0
+                discounted_sum = reward + agent.gamma * discounted_sum
+                returns[idx] = discounted_sum
+                
+            with tf.GradientTape() as tape:
+                values = agent.critic(expert_states, training=True)
+                loss = tf.reduce_mean(tf.square(tf.convert_to_tensor(returns, dtype=tf.float32) - tf.squeeze(values)))
+            grads = tape.gradient(loss, agent.critic.trainable_variables)
+            agent.critic_optimizer.apply_gradients(zip(grads, agent.critic.trainable_variables))
+            
+        print("PPO expert pre-training finished!")
+    
     # Buffers
     states_buffer = []
     actions_buffer = []
@@ -120,4 +164,4 @@ def train_ppo(epochs=50, steps_per_epoch=1000):
     return metrics
 
 if __name__ == "__main__":
-    train_ppo(epochs=10) # Shortened for demonstration
+    train_ppo(epochs=10, steps_per_epoch=100)  # Reduced for faster training

@@ -4,7 +4,7 @@ import pickle
 import os
 
 class QLearningAgent:
-    def __init__(self, action_space_size, alpha=0.1, gamma=0.99, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01):
+    def __init__(self, action_space_size, alpha=0.1, gamma=0.99, epsilon=1.0, epsilon_decay=0.9995, epsilon_min=0.01):
         self.action_space_size = action_space_size
         self.alpha = alpha
         self.gamma = gamma

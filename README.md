@@ -326,44 +326,11 @@ pip install tensorflow-directml
 
 Expected speedup: 5-10x faster training
 
-## 📝 Citation
-
-If you use this project in your research, please cite:
-
-```bibtex
-@software{warehouse_robot_navigation,
-  title={Warehouse Robot Navigation Agent},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/yourusername/Warehouse-Robot-Navigation-Agent}
-}
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- TensorFlow team for the deep learning framework
-- OpenAI Gym for environment design inspiration
-- Reinforcement learning community for algorithms and best practices
-
 ## 📧 Contact
 
 For questions or feedback:
 - Open an issue on GitHub
-- Email: your.email@example.com
+- Email: shrinivasbhong2428@gmail.com
 
 ---
 
